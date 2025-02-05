@@ -53,12 +53,12 @@ app.post("/signup",  async (req,res)=>{
         throw new Error("Invalid credientils");
       }
 
-      const isPasswordValid= await bcrypt.compare(password, user.password);
+      const isPasswordValid= await user.verifyPassword(password);
 
       if(isPasswordValid){
             
-          const token = await jwt.sign({id:user._id},"Devfusin@8957$12");
-          console.log(token);
+          const token =  await user.getJWT();
+           
 
         // create jwt token
         res.cookie("token", token); 
