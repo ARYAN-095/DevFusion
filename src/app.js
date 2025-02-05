@@ -7,6 +7,8 @@ const bcrypt= require("bcrypt");
 const validateSignUpData= require("./utils/validation");
 const cookieParser= require("cookie-parser"); 
 const jwt= require("jsonwebtoken");
+const userAuth = require("./middlewares/auth.middlewares.js");
+
 
  const app=express();
 
@@ -93,33 +95,17 @@ app.get("/user", async (req,res)=>{
 
 })
 
-app.get("/profile", async (req,res)=>{
+app.get("/profile", userAuth,  async (req,res)=>{
 
-  try{
-
-    const cookie= req.cookies;
-
-    const {token}=cookie;
-
-    if(!token){
-      throw new Error("Invalid token");
-    }
-  
-          // validate my token 
-           const decodedmessage = await jwt.verify(token, "Devfusin@8957$12");
-  
-           
-  
-           const {id} = decodedmessage;
-             
-     
-    console.log(cookie);
-    res.send("cookie recieved");
-
-  }catch(error){
-
-  } 
+   try{
+    const user= req.user;
+    
+     res.send(user);
+   }catch(err){
+    res.status(400).send("Error: "+ err.message);
+   }
 })
+
 
  app.patch("/user", async(req,res)=>{
   const userId=req.body.userId;
@@ -129,7 +115,7 @@ app.get("/profile", async (req,res)=>{
           returnDocument:"after",
           runValidators:true
         });
-        console.log(user);
+         
         res.send("User updated successfully");
     }catch(err){
       res.status(400).send("Something went wrrong");
