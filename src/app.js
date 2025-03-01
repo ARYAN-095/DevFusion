@@ -1,87 +1,36 @@
  
- const express= require("express");
- const ConnectDb=require("./config/database.js");
- const User= require("./models/user.js");
- 
-const bcrypt= require("bcrypt");
-const validateSignUpData= require("./utils/validation");
-const cookieParser= require("cookie-parser"); 
-const jwt= require("jsonwebtoken");
-const userAuth = require("./middlewares/auth.middlewares.js");
+  const express= require("express");
+  const ConnectDb=require("./config/database.js");
+  const User= require("./models/user.js");
+  
+   const cookieParser= require ("cookie-parser");
 
+   const jwt= require("jsonwebtoken");
 
- const app=express();
+   const userAuth = require("./middlewares/auth.middleware.js");
 
- app.use(express.json());
+   
+   const app=express();
+
+  app.use(express.json());
   app.use(cookieParser());
 
- 
-app.post("/signup",  async (req,res)=>{
+  const authRouter= require("./routes/auth");
+  const profileRouter= require("./routes/profile");
+  const requestRouter=require("./routes/request");
 
-     try{
+  app.use("/", authRouter);
+  app.use("/", profileRouter);
+  app.use("/", authRouter);
 
-       // validation of data
-       validateSignUpData(req);
-
-       const {firstName, lastName, emailId, password}= req.body;
-
-       const hashPassword= await bcrypt.hash(password, 10);
-
-       const user = new User({
-        firstName,
-        lastName,
-        emailId,
-        password: hashPassword
-       })
-       await user.save();
-       res.send("user added successfully");
-          
-     }catch(error){
-           res.status(400).send("Error: "+ error.message);
-     }
-      
-     
-})
-
-  app.post("/login", async(req, res)=>{
-    try{
-      const {emailId, password}= req.body;
-
-      const user= await User.findOne({emailId:emailId});
-
-      if(!user){
-        throw new Error("Invalid credientils");
-      }
-
-      const isPasswordValid= await user.verifyPassword(password);
-
-      if(isPasswordValid){
-            
-          const token =  await user.getJWT();
-           
-
-        // create jwt token
-        res.cookie("token", token); 
+  
 
 
-        // add the token to cookiew and send the resoponse back to the user
-
-
-        res.send("Login Successful");
-      }else {
-        throw new Error("Invalid credianials");
-      }
-    }
-    catch(err){
-      res.status(400).send("Error: "+ err.message);
-    }
-  })
-
-// get user by email
+  // get user by email
 app.get("/user", async (req,res)=>{
-  const email=req.body.emailId;
-  try{
-   const user= await User.find({emailId:email});
+    const email=req.body.emailId;
+       try{
+       const user= await User.find({emailId:email});
    
    if(!user){
     res.status(404).send("user not found");
@@ -95,16 +44,7 @@ app.get("/user", async (req,res)=>{
 
 })
 
-app.get("/profile", userAuth,  async (req,res)=>{
 
-   try{
-    const user= req.user;
-    
-     res.send(user);
-   }catch(err){
-    res.status(400).send("Error: "+ err.message);
-   }
-})
 
 
  app.patch("/user", async(req,res)=>{
@@ -135,3 +75,15 @@ app.get("/profile", userAuth,  async (req,res)=>{
     console.log("Server is successfully listening on port 3000..");
  });
   
+
+
+
+
+
+
+
+                                 
+
+
+
+
